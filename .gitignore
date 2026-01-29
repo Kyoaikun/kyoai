@@ -1,0 +1,24 @@
+﻿# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+bench_*.log
+server.log
+gui_errors.log
+
+# Local state / user data
+users/
+sessions.json
+history.jsonl
+memory.txt
+_tool_test.txt
+
+# RAG / DB
+rag/
+*.sqlite3
+
+# OS junk
+.DS_Store
+Thumbs.db
