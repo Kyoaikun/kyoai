@@ -6,11 +6,11 @@ try {
     $port = 8080
     $listening = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
     if (-not $listening) {
-        Start-Process powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File F:\kimi\agent\start_server.ps1
+        Start-Process powershell -WindowStyle Hidden -ArgumentList @('-ExecutionPolicy','Bypass','-File','F:\kimi\agent\start_server.ps1')
         Start-Sleep -Seconds 2
     }
 } catch {
-    Start-Process powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File F:\kimi\agent\start_server.ps1
+    Start-Process powershell -WindowStyle Hidden -ArgumentList @('-ExecutionPolicy','Bypass','-File','F:\kimi\agent\start_server.ps1')
     Start-Sleep -Seconds 2
 }
 python F:\kimi\agent\gui_client.py
