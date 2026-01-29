@@ -1047,22 +1047,32 @@ class KyoaiGUI:
         except Exception:
             pass
 
+    def _msg_role(self, msg):
+        if isinstance(msg, dict):
+            return msg.get("role")
+        return getattr(msg, "role", None)
+
+    def _msg_content(self, msg):
+        if isinstance(msg, dict):
+            return msg.get("content", "")
+        return getattr(msg, "content", "") or ""
+
     def _serialize_messages(self, msgs):
         kept = []
         for m in msgs:
-            role = m.get("role")
+            role = self._msg_role(m)
             if role not in {"user", "assistant", "error"}:
                 continue
-            content = m.get("content", "")
+            content = self._msg_content(m)
             kept.append({"role": role, "content": content})
         return kept
 
     def _update_memory_summary(self):
         try:
             mem_input = "\n".join(
-                m.get("content", "")
+                self._msg_content(m)
                 for m in self.messages[-10:]
-                if isinstance(m.get("content"), str)
+                if isinstance(self._msg_content(m), str)
             )
             if len(mem_input) > 3000:
                 mem_input = mem_input[-3000:]
