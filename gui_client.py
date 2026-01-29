@@ -958,6 +958,8 @@ class KyoaiGUI:
         if not text:
             return False
         t = text.lower()
+        if t.strip() in {"yes", "y", "ok", "okay", "go ahead", "do it", "proceed", "confirm", "sure"}:
+            return True
         # Allow common intent verbs even if the user doesn't mention a file explicitly.
         explicit = re.search(r"\b(edit|write|modify|change|update|create|add|delete|remove|fix|adjust|tweak|move)\b", t)
         if explicit:
