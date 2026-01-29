@@ -31,13 +31,6 @@ class KyoaiGUI:
         self.user_root = Path(self.user_root_base) / self.user_name
         la.set_user_paths(str(self.user_root))
 
-        self.sessions = self._load_sessions()
-        self.current_session = self.sessions.get("current", "default")
-        self.messages = self._init_system_messages()
-        self.messages.extend(self._session_messages())
-        self.last_assistant_text = ""
-        self.last_user_text = ""
-
         self.auto_save_pattern = os.environ.get("LLAMA_AUTO_SAVE_PATTERN", "0") == "1"
         self.pattern_min_score = la.PATTERN_MIN_SCORE
         self.auto_tune_patterns = True
@@ -56,6 +49,13 @@ class KyoaiGUI:
         self.profiles_path = Path(os.environ.get("LLAMA_PROFILES_PATH", r"F:\kimi\agent\profiles.json"))
         self.profiles = self._load_profiles()
         self.current_profile = self.profiles[0]["name"] if self.profiles else "default"
+
+        self.sessions = self._load_sessions()
+        self.current_session = self.sessions.get("current", "default")
+        self.messages = self._init_system_messages()
+        self.messages.extend(self._session_messages())
+        self.last_assistant_text = ""
+        self.last_user_text = ""
 
         self.settings = self._load_settings()
         self._apply_settings()
