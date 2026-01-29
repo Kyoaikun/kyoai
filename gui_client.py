@@ -958,9 +958,10 @@ class KyoaiGUI:
         if not text:
             return False
         t = text.lower()
-        explicit = re.search(r"\b(edit|write|modify|change|update|create|add|delete|remove)\b", t)
-        if not explicit:
-            return False
+        # Allow common intent verbs even if the user doesn't mention a file explicitly.
+        explicit = re.search(r"\b(edit|write|modify|change|update|create|add|delete|remove|fix|adjust|tweak|move)\b", t)
+        if explicit:
+            return True
         if "file" in t or "files" in t or "path" in t:
             return True
         if re.search(r"[a-zA-Z]:\\", text):
