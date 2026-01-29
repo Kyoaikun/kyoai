@@ -47,6 +47,7 @@ class KyoaiGUI:
 
         self.gui_memory = os.environ.get("LLAMA_GUI_MEMORY", "1") == "1"
         self.echo_tool_output = os.environ.get("LLAMA_GUI_ECHO_TOOL_OUTPUT", "0") == "1"
+        self.concise_mode = os.environ.get("LLAMA_GUI_CONCISE", "0") == "1"
         self.project_root = os.environ.get("LLAMA_PROJECT_ROOT", r"F:\kimi\projects")
         self.base_rag_dirs = list(la.RAG_DIRS)
         self.enable_planner = os.environ.get("LLAMA_GUI_PLANNER", "1") == "1"
@@ -81,6 +82,8 @@ class KyoaiGUI:
         memory = la.load_memory()
         if memory:
             system = system + " Persistent memory:\n" + memory
+        if self.concise_mode:
+            system = system + " Keep responses short and plain: 1-3 sentences, no headings, no markdown."
         if la.PATTERN_PATH.exists():
             try:
                 patterns = la.PATTERN_PATH.read_text(encoding="utf-8", errors="ignore")
@@ -180,6 +183,7 @@ class KyoaiGUI:
         self.auto_var = tk.BooleanVar(value=self.auto_save_pattern)
         self.echo_var = tk.BooleanVar(value=self.echo_tool_output)
         self.safe_var = tk.BooleanVar(value=self.safe_mode)
+        self.concise_var = tk.BooleanVar(value=self.concise_mode)
 
         self.more_btn = tk.Menubutton(session_bar, text="More", bg="#0f1115", fg="#e6e6e6", relief="flat")
         self.more_btn.pack(side="left", padx=(6, 0))
@@ -187,6 +191,7 @@ class KyoaiGUI:
         more_menu.add_checkbutton(label="Auto Save", variable=self.auto_var, command=self._on_toggle_auto_save)
         more_menu.add_checkbutton(label="Echo Tools", variable=self.echo_var, command=self._on_toggle_echo)
         more_menu.add_checkbutton(label="Safe Mode", variable=self.safe_var, command=self._on_toggle_safe_mode)
+        more_menu.add_checkbutton(label="Concise Mode", variable=self.concise_var, command=self._on_toggle_concise)
         more_menu.add_separator()
         more_menu.add_command(label="Save Pattern", command=self._on_save_pattern)
         more_menu.add_command(label="Patterns", command=self._on_view_patterns)
@@ -446,6 +451,7 @@ class KyoaiGUI:
                     return
 
             assistant_text = msg.content or ""
+            self._verify_assistant_claims(assistant_text, tool_trace)
             if self._detect_fabricated_tool_log(assistant_text):
                 self._append_error_banner("Fabricated tool/skill log detected in assistant response.")
             if needs_tools and self._looks_non_english(assistant_text):
@@ -632,6 +638,11 @@ class KyoaiGUI:
         self._save_settings()
         self._append(f"Safe Mode: {self.safe_mode}", "assistant")
 
+    def _on_toggle_concise(self):
+        self.concise_mode = bool(self.concise_var.get())
+        self._save_settings()
+        self._append(f"Concise Mode: {self.concise_mode}", "assistant")
+
     def _toggle_safe_mode_cmd(self):
         self.safe_mode = not self.safe_mode
         self.safe_var.set(self.safe_mode)
@@ -711,6 +722,7 @@ class KyoaiGUI:
             f"Profile: {self.current_profile}",
             f"Safe Mode: {self.safe_mode}",
             f"Echo Tools: {self.echo_tool_output}",
+            f"Concise Mode: {self.concise_mode}",
             f"Auto Save: {self.auto_save_pattern}",
             f"Project Root: {self.project_root}",
             f"RAG Dirs: {', '.join(la.RAG_DIRS)}",
@@ -984,6 +996,19 @@ class KyoaiGUI:
         ]
         return any(m in text for m in markers)
 
+    def _assistant_claims_action(self, text):
+        if not text:
+            return False
+        t = text.lower()
+        return bool(re.search(r"\b(wrote|write|edited|edit|updated|update|created|create|deleted|delete|removed|remove|ran|run|executed|execute|listed|list|read|open|opened|indexed|index)\b", t))
+
+    def _verify_assistant_claims(self, assistant_text, tool_trace):
+        if not self._assistant_claims_action(assistant_text):
+            return
+        if tool_trace:
+            return
+        self._append_error_banner("Response claims actions, but no tools were run. Verify manually.")
+
     def _looks_non_english(self, text):
         if not text:
             return False
@@ -1190,6 +1215,7 @@ class KyoaiGUI:
             "tune_window": self.pattern_tune_window,
             "echo_tools": self.echo_tool_output,
             "safe_mode": self.safe_mode,
+            "concise_mode": self.concise_mode,
             "profile": self.current_profile,
         }
         path = self._settings_path()
@@ -1222,6 +1248,8 @@ class KyoaiGUI:
             self.echo_tool_output = bool(s.get("echo_tools"))
         if "safe_mode" in s:
             self.safe_mode = bool(s.get("safe_mode"))
+        if "concise_mode" in s:
+            self.concise_mode = bool(s.get("concise_mode"))
         if "profile" in s:
             self.current_profile = s.get("profile") or self.current_profile
             self._apply_profile(self.current_profile)
