@@ -531,6 +531,9 @@ class KyoaiGUI:
         return sorted(self.sessions.get("sessions", {}).keys())
 
     def _session_messages(self):
+        # Always start fresh when using the default session.
+        if self.current_session == "default":
+            return []
         return self.sessions.get("sessions", {}).get(self.current_session, [])
 
     def _save_session_messages(self):
