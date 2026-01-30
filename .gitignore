@@ -18,6 +18,7 @@ _tool_test.txt
 # RAG / DB
 rag/
 *.sqlite3
+downloads/
 
 # OS junk
 .DS_Store

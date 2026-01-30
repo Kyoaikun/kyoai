@@ -401,6 +401,11 @@ class KyoaiGUI:
                                 result = "Blocked by Safe Mode"
                             else:
                                 result = la.fetch_url_rendered(**args)
+                        elif name == "download_file":
+                            if self.safe_mode:
+                                result = "Blocked by Safe Mode"
+                            else:
+                                result = la.download_file(**args)
                         elif name == "search_text":
                             result = la.search_text(**args)
                         elif name == "rag_index":
